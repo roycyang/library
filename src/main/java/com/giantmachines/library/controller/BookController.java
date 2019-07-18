@@ -1,32 +1,41 @@
 package com.giantmachines.library.controller;
 
+import com.giantmachines.library.exception.EntityNotFoundException;
 import com.giantmachines.library.model.Book;
+import com.giantmachines.library.persistence.Persistence;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.ResponseEntity;
 
+
+import javax.validation.Valid;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 @RestController
 @RequestMapping ("/books")
 public class BookController {
 
+    private Persistence persistence;
+
+    public BookController(Persistence persistence) {
+        this.persistence = persistence;
+    }
+
     private Map <Integer, Book> bookMap = new HashMap<>();
-    private Integer counter = 0;
 
     @PostMapping
-    public void addBook(@RequestBody Book book){
-        bookMap.put(++counter, book);
+    public ResponseEntity addBook(@Valid @RequestBody Book book) {
+        return ResponseUtility.buildCreatedResponse(persistence.save(book));
     }
 
     @GetMapping
-    public Set<Map.Entry<Integer, Book>> getAllBook(){
-        return bookMap.entrySet();
+    public ResponseEntity getAllBooks() {
+        return ResponseUtility.buildOkResponse(persistence.findAll());
     }
 
     @GetMapping("/{bookId}")
-    public Book getBookById(@PathVariable Integer bookId){
-        return bookMap.get(bookId);
+    public ResponseEntity getBookById(@PathVariable Integer bookId) throws EntityNotFoundException {
+        return ResponseUtility.buildOkResponse(persistence.findById(bookId));
     }
 
 }
